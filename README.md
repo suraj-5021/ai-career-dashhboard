@@ -1,3 +1,22 @@
+## Live Demo
+https://ai-careeros-theta.vercel.app
+
+## Backend API
+https://ai-careeros-api.onrender.com
+
+## Tech Stack
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Node.js
+- Express.js
+- MongoDB
+- JWT Authentication
+- Socket.io
+
+  
 # Full-Stack AI CareerOS Dashboard SaaS
 
 Welcome to **CareerOS**, a world-class, production-ready Full Stack AI Career Optimization and Job Tracking SaaS dashboard designed to look like a premium product built by a funded startup.
