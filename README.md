@@ -1,6 +1,11 @@
+![Banner](./screenshots/home.png)
+
+# Full-Stack AI CareerOS Dashboard SaaS
+
+Welcome to **CareerOS**, a world-class, production-ready Full Stack AI Career Optimization and Job Tracking SaaS dashboard designed to look like a premium product built by a funded startup
+
 ## Live Demo
 https://ai-careeros-theta.vercel.app
-
 
 ## Tech Stack
 
@@ -14,10 +19,6 @@ https://ai-careeros-theta.vercel.app
 - JWT Authentication
 - Socket.io
 
-  
-# Full-Stack AI CareerOS Dashboard SaaS
-
-Welcome to **CareerOS**, a world-class, production-ready Full Stack AI Career Optimization and Job Tracking SaaS dashboard designed to look like a premium product built by a funded startup.
 
 This repository contains two primary modules:
 1. `frontend/` - Next.js 15 App Router + React 19 + TypeScript + Tailwind CSS + Recharts + Framer Motion.
@@ -50,6 +51,8 @@ For immediate evaluation, both User and Admin account settings have pre-seeded p
 
 ---
 
+![Dashboard](./screenshots/dashboard.png)
+![resume analyzer](./screenshots/resumeanalyzer.png)
 ## 🛠️ Local Installation & Launch
 
 Ensure you have [Node.js v24+](https://nodejs.org) and [NPM v11+](https://npmjs.com) installed.
@@ -112,3 +115,10 @@ workspace/
     ├── index.ts                 # Express Entry
     └── package.json
 ```
+👨‍💻 Author:
+
+Suraj Soni
+GitHub: https://github.com/suraj-5021
+LinkedIn: https://www.linkedin.com/in/suraj-soni-1773a5320
+
+
