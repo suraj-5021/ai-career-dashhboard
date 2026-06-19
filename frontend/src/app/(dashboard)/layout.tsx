@@ -188,12 +188,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="relative">
             <button
               onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-              className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-muted-foreground transition-all cursor-pointer"
+              className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-muted-foreground transition-all cursor-pointer relative focus:outline-none focus:ring-2 focus:ring-indigo-500/25"
             >
               <Bell className="h-4.5 w-4.5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 h-4.5 w-4.5 bg-indigo-600 text-[10px] text-white font-extrabold flex items-center justify-center rounded-full">
-                  {unreadCount}
+                <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-indigo-600 text-[8px] text-white font-extrabold items-center justify-center border border-card">
+                    {unreadCount}
+                  </span>
                 </span>
               )}
             </button>
@@ -216,7 +219,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Theme selector */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl bg-secondary hover:bg-secondary/80 border border-border/80 text-muted-foreground transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-secondary hover:bg-secondary/85 border border-border/80 text-muted-foreground transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
               {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -225,12 +228,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="relative">
               <button
                 onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                className="p-2.5 rounded-xl bg-secondary hover:bg-secondary/80 border border-border/80 text-muted-foreground transition-all cursor-pointer relative"
+                className="p-2.5 rounded-xl bg-secondary hover:bg-secondary/85 border border-border/80 text-muted-foreground transition-all cursor-pointer relative focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 <Bell className="h-4 w-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-indigo-600 text-[10px] text-white font-extrabold flex items-center justify-center rounded-full border border-card">
-                    {unreadCount}
+                  <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-indigo-600 text-[9px] text-white font-extrabold items-center justify-center border border-card">
+                      {unreadCount}
+                    </span>
                   </span>
                 )}
               </button>
@@ -243,7 +249,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {unreadCount > 0 && (
                       <button 
                         onClick={handleMarkAllAsRead}
-                        className="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold"
+                        className="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer"
                       >
                         Mark all read
                       </button>
@@ -251,14 +257,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                   <div className="max-h-64 overflow-y-auto no-scrollbar py-1 divide-y divide-border">
                     {notifications.length === 0 ? (
-                      <div className="px-4 py-6 text-center text-xs text-muted-foreground font-medium">
-                        No notifications found
+                      <div className="px-4 py-8 text-center flex flex-col items-center justify-center gap-2">
+                        <div className="h-10 w-10 rounded-full bg-zinc-900/60 border border-zinc-800 flex items-center justify-center text-zinc-500">
+                          <Bell className="h-4.5 w-4.5" />
+                        </div>
+                        <span className="text-xs text-zinc-400 font-bold mt-1">All caught up!</span>
+                        <span className="text-[10px] text-zinc-500 font-medium px-4">You have read all recent alerts in your feed.</span>
                       </div>
                     ) : (
                       notifications.map((notif) => (
                         <div 
                           key={notif._id || Math.random()} 
-                          className={`p-3.5 flex flex-col gap-1 transition-all ${
+                          className={`p-3.5 flex flex-col gap-1 transition-all hover:bg-secondary/20 ${
                             !notif.read ? 'bg-indigo-600/5' : ''
                           }`}
                         >
@@ -267,14 +277,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {!notif.read && (
                               <button 
                                 onClick={() => handleMarkAsRead(notif._id)}
-                                className="h-4 w-4 rounded bg-secondary hover:bg-indigo-600/20 flex items-center justify-center text-indigo-400 cursor-pointer"
+                                className="h-4.5 w-4.5 rounded bg-secondary hover:bg-indigo-600/20 flex items-center justify-center text-indigo-400 cursor-pointer border border-transparent hover:border-indigo-500/15"
                               >
                                 <Check className="h-2.5 w-2.5" />
                               </button>
                             )}
                           </div>
                           <p className="text-[11px] text-muted-foreground leading-normal">{notif.message}</p>
-                          <span className="text-[9px] text-zinc-500 mt-1 font-medium">
+                          <span className="text-[9px] text-zinc-500 mt-1 font-medium font-sans">
                             {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>

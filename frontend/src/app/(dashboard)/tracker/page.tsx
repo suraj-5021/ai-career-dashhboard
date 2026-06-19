@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import { 
   Plus, Search, Filter, Briefcase, MapPin, 
-  DollarSign, Loader2, Calendar, FileText, Trash2, Edit 
+  DollarSign, Loader2, Calendar, FileText, Trash2, Edit, Inbox
 } from 'lucide-react';
 
 type JobStatus = 'applied' | 'interviewing' | 'offered' | 'rejected';
@@ -164,7 +164,7 @@ export default function TrackerPage() {
     { title: 'Applied', status: 'applied', colorClass: 'text-indigo-400 border-indigo-500/25', bgClass: 'bg-indigo-500/5' },
     { title: 'Interviewing', status: 'interviewing', colorClass: 'text-amber-400 border-amber-500/25', bgClass: 'bg-amber-500/5' },
     { title: 'Offered', status: 'offered', colorClass: 'text-emerald-400 border-emerald-500/25', bgClass: 'bg-emerald-500/5' },
-    { title: 'Rejected', status: 'rejected', colorClass: 'text-red-400 border-red-500/25', bgClass: 'bg-red-500/5' }
+    { title: 'Rejected', status: 'rejected', colorClass: 'text-rose-400 border-rose-500/25', bgClass: 'bg-rose-500/5' }
   ];
 
   if (loading) {
@@ -234,46 +234,56 @@ export default function TrackerPage() {
               {/* Column Header */}
               <div className="flex justify-between items-center mb-4 pb-2 border-b border-border/60">
                 <span className={`text-xs font-extrabold uppercase tracking-wider ${col.colorClass}`}>{col.title}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-bold">{colJobs.length}</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-855 bg-zinc-800 text-zinc-400 font-bold">{colJobs.length}</span>
               </div>
 
               {/* Cards list */}
-              <div className="flex-1 space-y-3 overflow-y-auto no-scrollbar">
-                {colJobs.map(job => (
-                  <div
-                    key={job._id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, job._id)}
-                    onClick={() => setShowDetailsModal(job)}
-                    className="p-4 rounded-xl bg-card border border-border/80 cursor-grab active:cursor-grabbing hover:border-indigo-500/40 hover:shadow-lg transition-all text-left relative group"
-                  >
-                    <h4 className="text-xs font-extrabold truncate">{job.position}</h4>
-                    <span className="text-[10px] text-muted-foreground font-semibold mt-0.5 block">{job.company}</span>
-                    
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      <span className="inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded bg-secondary/80 text-muted-foreground gap-1">
-                        <MapPin className="h-2.5 w-2.5" />
-                        {job.location || 'N/A'}
-                      </span>
-                      <span className="inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/5 text-indigo-400">
-                        {job.jobType}
-                      </span>
-                    </div>
+              <div className="flex-1 space-y-3 overflow-y-auto no-scrollbar flex flex-col">
+                {colJobs.map(job => {
+                  const borderLClass = 
+                    job.status === 'applied' ? 'border-l-4 border-l-indigo-500' :
+                    job.status === 'interviewing' ? 'border-l-4 border-l-amber-500' :
+                    job.status === 'offered' ? 'border-l-4 border-l-emerald-500' :
+                    'border-l-4 border-l-rose-500';
 
-                    {job.interviews?.length > 0 && (
-                      <div className="mt-3 pt-2.5 border-t border-border/60 flex items-center justify-between text-[9px] text-amber-400 font-bold">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-2.5 w-2.5" />
-                          {job.interviews.length} Loop scheduled
+                  return (
+                    <div
+                      key={job._id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, job._id)}
+                      onClick={() => setShowDetailsModal(job)}
+                      className={`p-4 rounded-xl bg-card border border-border/80 ${borderLClass} cursor-grab active:cursor-grabbing hover:border-indigo-500/40 hover:shadow-lg transition-all text-left relative group`}
+                    >
+                      <h4 className="text-xs font-extrabold truncate">{job.position}</h4>
+                      <span className="text-[10px] text-muted-foreground font-semibold mt-0.5 block">{job.company}</span>
+                      
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        <span className="inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded bg-secondary/80 text-muted-foreground gap-1">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {job.location || 'N/A'}
+                        </span>
+                        <span className="inline-flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/5 text-indigo-400">
+                          {job.jobType}
                         </span>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {job.interviews?.length > 0 && (
+                        <div className="mt-3 pt-2.5 border-t border-border/60 flex items-center justify-between text-[9px] text-amber-400 font-bold">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-2.5 w-2.5" />
+                            {job.interviews.length} Loop scheduled
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {colJobs.length === 0 && (
-                  <div className="h-24 rounded-xl border border-dashed border-border/60 flex items-center justify-center text-center p-4">
-                    <span className="text-[10px] text-muted-foreground font-medium">Drop items here</span>
+                  <div className="flex-1 flex flex-col items-center justify-center min-h-[150px] rounded-xl border border-dashed border-zinc-800 bg-zinc-900/10 p-4 text-center select-none transition-colors duration-200">
+                    <Inbox className="h-6 w-6 text-zinc-600 mb-2 stroke-[1.5]" />
+                    <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">No applications</span>
+                    <span className="text-[9px] text-zinc-650 text-zinc-600 mt-1 max-w-[120px] leading-relaxed">Drag cards here to update status</span>
                   </div>
                 )}
               </div>
@@ -360,19 +370,28 @@ export default function TrackerPage() {
             <div className="mt-4 pt-3 border-t border-border/60">
               <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-2">Stage Status (Mobile Shortcut)</label>
               <div className="grid grid-cols-4 gap-2">
-                {columns.map(col => (
-                  <button
-                    key={col.status}
-                    onClick={() => handleStatusUpdate(showDetailsModal._id, col.status)}
-                    className={`py-1.5 rounded-lg border text-[10px] font-bold text-center transition-all cursor-pointer ${
-                      showDetailsModal.status === col.status 
-                        ? 'bg-indigo-600 border-indigo-600 text-white' 
-                        : 'border-border bg-secondary hover:bg-secondary/80 text-muted-foreground'
-                    }`}
-                  >
-                    {col.title}
-                  </button>
-                ))}
+                {columns.map(col => {
+                  const isActive = showDetailsModal.status === col.status;
+                  const activeClasses = 
+                    col.status === 'applied' ? 'bg-indigo-500/10 border-indigo-500/60 text-indigo-400 shadow-sm shadow-indigo-500/5' :
+                    col.status === 'interviewing' ? 'bg-amber-500/10 border-amber-500/60 text-amber-400 shadow-sm shadow-amber-500/5' :
+                    col.status === 'offered' ? 'bg-emerald-500/10 border-emerald-500/60 text-emerald-400 shadow-sm shadow-emerald-500/5' :
+                    'bg-rose-500/10 border-rose-500/60 text-rose-400 shadow-sm shadow-rose-500/5';
+                  
+                  return (
+                    <button
+                      key={col.status}
+                      onClick={() => handleStatusUpdate(showDetailsModal._id, col.status)}
+                      className={`py-1.5 rounded-lg border text-[10px] font-bold text-center transition-all cursor-pointer ${
+                        isActive 
+                          ? activeClasses 
+                          : 'border-border bg-secondary hover:bg-secondary/80 text-muted-foreground'
+                      }`}
+                    >
+                      {col.title}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

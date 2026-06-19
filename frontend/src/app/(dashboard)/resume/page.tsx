@@ -154,55 +154,100 @@ export default function ResumePage() {
           <div className="lg:col-span-1 space-y-6">
             
             {/* ATS Score card */}
-            <div className="glass-panel p-6 rounded-3xl border border-border/50 text-center flex flex-col items-center">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">ATS Compatibility Score</span>
-              
-              <div className="relative h-36 w-36 flex items-center justify-center mb-4">
-                <svg className="absolute w-full h-full transform -rotate-90">
-                  <circle cx="72" cy="72" r="62" stroke="currentColor" className="text-zinc-800 dark:text-zinc-900" strokeWidth="6.5" fill="transparent" />
-                  <circle cx="72" cy="72" r="62" stroke="currentColor" className="text-indigo-500" strokeWidth="6.5" fill="transparent" 
-                          strokeDasharray={2 * Math.PI * 62} 
-                          strokeDashoffset={2 * Math.PI * 62 * (1 - result.atsScore / 100)} />
-                </svg>
-                <div className="flex flex-col items-center">
-                  <span className="text-3xl font-extrabold">{result.atsScore}</span>
-                  <span className="text-[9px] text-zinc-500 font-bold uppercase mt-0.5">out of 100</span>
-                </div>
-              </div>
+            {(() => {
+              const getScoreTheme = (score: number) => {
+                if (score >= 80) return {
+                  bg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+                  stroke: 'url(#atsScoreGradientEmerald)',
+                  glow: 'shadow-emerald-500/10'
+                };
+                if (score >= 65) return {
+                  bg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+                  stroke: 'url(#atsScoreGradientAmber)',
+                  glow: 'shadow-amber-500/10'
+                };
+                return {
+                  bg: 'bg-rose-500/10 border-rose-500/20 text-rose-450 text-rose-400',
+                  stroke: 'url(#atsScoreGradientRose)',
+                  glow: 'shadow-rose-500/10'
+                };
+              };
+              const scoreTheme = getScoreTheme(result.atsScore);
 
-              <h4 className="text-xs font-bold text-zinc-200 mt-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15">
-                {result.verdict}
-              </h4>
-              
-              <button 
-                onClick={() => { setFile(null); setResult(null); }}
-                className="mt-6 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-semibold cursor-pointer"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Analyze Another Resume
-              </button>
-            </div>
+              return (
+                <div className="glass-panel p-6 rounded-3xl border border-border/50 text-center flex flex-col items-center">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">ATS Compatibility Score</span>
+                  
+                  <div className="relative h-36 w-36 flex items-center justify-center mb-4">
+                    <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 144 144">
+                      <defs>
+                        <linearGradient id="atsScoreGradientEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#34d399" />
+                          <stop offset="100%" stopColor="#059669" />
+                        </linearGradient>
+                        <linearGradient id="atsScoreGradientAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#fbbf24" />
+                          <stop offset="100%" stopColor="#d97706" />
+                        </linearGradient>
+                        <linearGradient id="atsScoreGradientRose" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#f87171" />
+                          <stop offset="100%" stopColor="#dc2626" />
+                        </linearGradient>
+                        <filter id="atsGlow" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="3.5" result="blur" />
+                          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                      </defs>
+                      <circle cx="72" cy="72" r="60" stroke="#1f2937" strokeWidth="7" fill="transparent" className="dark:stroke-zinc-800" />
+                      <circle cx="72" cy="72" r="60" stroke={scoreTheme.stroke} strokeWidth="7" strokeLinecap="round" fill="transparent" 
+                              strokeDasharray={2 * Math.PI * 60} 
+                              strokeDashoffset={2 * Math.PI * 60 * (1 - result.atsScore / 100)} 
+                              filter="url(#atsGlow)" className="opacity-30" />
+                      <circle cx="72" cy="72" r="60" stroke={scoreTheme.stroke} strokeWidth="7" strokeLinecap="round" fill="transparent" 
+                              strokeDasharray={2 * Math.PI * 60} 
+                              strokeDashoffset={2 * Math.PI * 60 * (1 - result.atsScore / 100)} />
+                    </svg>
+                    <div className="flex flex-col items-center">
+                      <span className="text-3xl font-extrabold tracking-tight text-white">{result.atsScore}</span>
+                      <span className="text-[9px] text-zinc-500 font-bold uppercase mt-0.5">out of 100</span>
+                    </div>
+                  </div>
+
+                  <h4 className={`text-xs font-extrabold px-4 py-1.5 rounded-full border transition-colors ${scoreTheme.bg}`}>
+                    {result.verdict}
+                  </h4>
+                  
+                  <button 
+                    onClick={() => { setFile(null); setResult(null); }}
+                    className="mt-6 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white font-semibold cursor-pointer transition-colors"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Analyze Another Resume
+                  </button>
+                </div>
+              );
+            })()}
 
             {/* Diagnostics Metrics grid */}
             <div className="glass-panel p-5 rounded-3xl border border-border/50 space-y-4">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Diagnostic Metrics</span>
               
               <div className="grid grid-cols-2 gap-3.5 text-xs">
-                <div className="p-3 bg-secondary/40 border border-border/60 rounded-xl">
+                <div className="p-3 bg-secondary/40 border border-border/60 rounded-xl hover:border-zinc-850 hover:bg-secondary/65 transition-all">
                   <span className="text-zinc-500 block text-[9px] font-bold uppercase">Impact Metric</span>
-                  <span className="text-base font-extrabold block mt-1">{result.metrics.impactScore}%</span>
+                  <span className="text-base font-extrabold block mt-1 text-white">{result.metrics.impactScore}%</span>
                 </div>
-                <div className="p-3 bg-secondary/40 border border-border/60 rounded-xl">
+                <div className="p-3 bg-secondary/40 border border-border/60 rounded-xl hover:border-zinc-850 hover:bg-secondary/65 transition-all">
                   <span className="text-zinc-500 block text-[9px] font-bold uppercase">Brevity Score</span>
-                  <span className="text-base font-extrabold block mt-1">{result.metrics.brevityScore}%</span>
+                  <span className="text-base font-extrabold block mt-1 text-white">{result.metrics.brevityScore}%</span>
                 </div>
-                <div className="p-3 bg-secondary/40 border border-border/60 rounded-xl">
+                <div className="p-3 bg-secondary/40 border border-border/60 rounded-xl hover:border-zinc-850 hover:bg-secondary/65 transition-all">
                   <span className="text-zinc-500 block text-[9px] font-bold uppercase">Layout Style</span>
-                  <span className="text-base font-extrabold block mt-1">{result.metrics.styleScore}%</span>
+                  <span className="text-base font-extrabold block mt-1 text-white">{result.metrics.styleScore}%</span>
                 </div>
-                <div className="p-3 bg-secondary/40 border border-border/60 rounded-xl">
+                <div className="p-3 bg-secondary/40 border border-border/60 rounded-xl hover:border-zinc-850 hover:bg-secondary/65 transition-all">
                   <span className="text-zinc-500 block text-[9px] font-bold uppercase">Skill Match</span>
-                  <span className="text-base font-extrabold block mt-1">{result.metrics.skillsScore}%</span>
+                  <span className="text-base font-extrabold block mt-1 text-white">{result.metrics.skillsScore}%</span>
                 </div>
               </div>
             </div>
@@ -213,7 +258,7 @@ export default function ResumePage() {
             
             {/* Keywords Analysis */}
             <div className="glass-panel p-6 rounded-3xl border border-border/50">
-              <h3 className="font-extrabold text-base mb-4 flex items-center gap-2">
+              <h3 className="font-extrabold text-base mb-4 flex items-center gap-2 text-white">
                 <Sparkles className="h-4.5 w-4.5 text-indigo-400" />
                 Keyword Check ({targetTitle})
               </h3>
@@ -222,27 +267,27 @@ export default function ResumePage() {
                 <table className="w-full text-xs text-left divide-y divide-border/60">
                   <thead className="bg-secondary/40 text-muted-foreground font-bold text-[10px] uppercase tracking-wider">
                     <tr>
-                      <th className="px-4 py-2.5">Industry Keyword</th>
-                      <th className="px-4 py-2.5">Presence</th>
-                      <th className="px-4 py-2.5">Importance</th>
+                      <th className="px-4 py-3">Industry Keyword</th>
+                      <th className="px-4 py-3">Presence</th>
+                      <th className="px-4 py-3 text-right">Importance</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60 font-semibold">
                     {result.keywordAnalysis.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-secondary/20">
-                        <td className="px-4 py-3 font-bold">{item.keyword}</td>
+                      <tr key={idx} className="hover:bg-secondary/20 transition-colors">
+                        <td className="px-4 py-3 font-bold text-zinc-100">{item.keyword}</td>
                         <td className="px-4 py-3">
                           {item.present ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-bold bg-emerald-500/5 px-2 py-0.5 rounded">
-                              <CheckCircle className="h-3 w-3" /> Found
+                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                              <CheckCircle className="h-3 w-3 stroke-[2]" /> Found
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-red-400 font-bold bg-red-500/5 px-2 py-0.5 rounded">
-                              <AlertCircle className="h-3 w-3" /> Missing
+                            <span className="inline-flex items-center gap-1 text-[10px] text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full">
+                              <AlertCircle className="h-3 w-3 stroke-[2]" /> Missing
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{item.importance}</td>
+                        <td className="px-4 py-3 text-right text-muted-foreground font-medium">{item.importance}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -252,16 +297,16 @@ export default function ResumePage() {
 
             {/* Bullet Point suggestions list */}
             <div className="glass-panel p-6 rounded-3xl border border-border/50">
-              <h3 className="font-extrabold text-base mb-4">Improvement Roadmap</h3>
+              <h3 className="font-extrabold text-base mb-4 text-white">Improvement Roadmap</h3>
               <div className="space-y-4">
                 {result.suggestions.map((sug: any, idx: number) => (
-                  <div key={idx} className="p-4 bg-secondary/35 border border-border/60 rounded-xl flex gap-3.5">
-                    <div className="h-7 w-7 rounded bg-indigo-500/10 flex items-center justify-center shrink-0 border border-indigo-500/15">
-                      <span className="text-indigo-400 text-xs font-bold">{idx + 1}</span>
+                  <div key={idx} className="p-4 bg-secondary/35 border border-border/60 hover:border-indigo-500/30 hover:bg-secondary/40 hover:shadow-lg rounded-xl flex gap-3.5 transition-all duration-300">
+                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 border border-indigo-400/20 shadow-md">
+                      <span className="text-white text-xs font-extrabold">{idx + 1}</span>
                     </div>
                     <div className="text-xs">
-                      <span className="font-extrabold text-zinc-200 block mb-1">Section: {sug.section}</span>
-                      <p className="text-muted-foreground leading-normal">{sug.tip}</p>
+                      <span className="font-extrabold text-indigo-300 block mb-1">Section: {sug.section}</span>
+                      <p className="text-muted-foreground leading-relaxed">{sug.tip}</p>
                     </div>
                   </div>
                 ))}
@@ -270,11 +315,11 @@ export default function ResumePage() {
 
             {/* Missing skills blocks */}
             <div className="glass-panel p-6 rounded-3xl border border-border/50">
-              <h3 className="font-extrabold text-base mb-3.5">Missing Core Skillsets</h3>
+              <h3 className="font-extrabold text-base mb-2 text-white">Missing Core Skillsets</h3>
               <p className="text-xs text-muted-foreground mb-4">We detected these missing technical skills on your resume for {targetTitle} positions.</p>
-              <div className="flex flex-wrap gap-2.5">
+              <div className="flex flex-wrap gap-2">
                 {result.missingSkills.map((skill: string, idx: number) => (
-                  <span key={idx} className="text-xs font-bold px-3 py-1.5 rounded-xl bg-indigo-500/5 text-indigo-400 border border-indigo-500/10">
+                  <span key={idx} className="text-[11px] font-bold px-3.5 py-1.5 rounded-xl bg-indigo-500/5 text-indigo-400 border border-indigo-500/10 hover:border-indigo-500/20 hover:bg-indigo-500/10 transition-colors cursor-default">
                     + {skill}
                   </span>
                 ))}

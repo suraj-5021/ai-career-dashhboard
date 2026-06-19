@@ -83,9 +83,24 @@ export default function SkillsPage() {
 
   const getStepStatusStyles = (status: string) => {
     switch (status) {
-      case 'completed': return { color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/5', dot: 'bg-emerald-400' };
-      case 'current': return { color: 'text-amber-400 border-amber-500/30 bg-amber-500/5', dot: 'bg-amber-400 animate-pulse' };
-      default: return { color: 'text-zinc-500 border-border/80 bg-secondary/30', dot: 'bg-zinc-600' };
+      case 'completed': return { 
+        color: 'border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/30 transition-all', 
+        dot: 'bg-emerald-400',
+        badge: 'bg-emerald-500/10 text-emerald-450 text-emerald-400 border-emerald-500/20',
+        badgeText: 'Completed'
+      };
+      case 'current': return { 
+        color: 'border-amber-500/20 bg-amber-500/5 hover:border-amber-500/30 transition-all', 
+        dot: 'bg-amber-400',
+        badge: 'bg-amber-500/10 text-amber-450 text-amber-400 border-amber-500/20',
+        badgeText: 'In Progress'
+      };
+      default: return { 
+        color: 'border-zinc-800 bg-secondary/20 hover:border-zinc-700 transition-all', 
+        dot: 'bg-zinc-700',
+        badge: 'bg-zinc-800/50 text-zinc-500 border-zinc-800/80',
+        badgeText: 'Up Next'
+      };
     }
   };
 
@@ -127,6 +142,8 @@ export default function SkillsPage() {
             {skills.map((skill) => {
               const isSelected = selectedSkill?._id === skill._id;
               const gap = Math.max(0, skill.targetLevel - skill.level);
+              const completionPercent = Math.min(100, Math.round((skill.level / skill.targetLevel) * 100));
+              
               return (
                 <div
                   key={skill._id}
@@ -142,7 +159,10 @@ export default function SkillsPage() {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="text-xs font-bold text-zinc-200">{skill.name}</h4>
+                      <h4 className="text-xs font-bold text-zinc-200 flex items-center gap-1.5 flex-wrap">
+                        {skill.name}
+                        <span className="text-[10px] text-indigo-400 font-extrabold">({completionPercent}% Complete)</span>
+                      </h4>
                       <span className="text-[9px] text-zinc-500 font-bold uppercase">{skill.category}</span>
                     </div>
                     {gap > 0 ? (
@@ -157,16 +177,27 @@ export default function SkillsPage() {
                   </div>
 
                   {/* Progress bar comparisons */}
-                  <div className="space-y-1 text-[9px] font-bold">
-                    <div className="flex justify-between text-zinc-400">
+                  <div className="space-y-1 text-[9px] font-bold pt-1">
+                    <div className="flex justify-between text-zinc-400 mb-1.5">
                       <span>Proficiency: {skill.level}%</span>
                       <span>Target: {skill.targetLevel}%</span>
                     </div>
-                    <div className="relative h-2 rounded-full bg-zinc-800/80 overflow-hidden border border-zinc-900">
-                      {/* Target level bar (dashed border or color indicator) */}
-                      <div className="absolute top-0 bottom-0 bg-indigo-500/20 border-r border-indigo-500/40" style={{ width: `${skill.targetLevel}%` }} />
-                      {/* Current level bar */}
-                      <div className="absolute top-0 bottom-0 bg-indigo-500" style={{ width: `${skill.level}%` }} />
+                    <div className="relative h-2 rounded-full bg-zinc-800/80 overflow-visible border border-zinc-900">
+                      {/* Current level progress bar */}
+                      <div className="absolute top-0 bottom-0 left-0 bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${skill.level}%` }} />
+                      
+                      {/* Target indicator ring (Gap indicator ring) */}
+                      <div 
+                        className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border-2 bg-zinc-950 flex items-center justify-center -translate-x-1/2 transition-all duration-300 shadow-md ${
+                          skill.level >= skill.targetLevel 
+                            ? 'border-emerald-500 shadow-emerald-500/10' 
+                            : 'border-indigo-400 shadow-indigo-500/10'
+                        }`}
+                        style={{ left: `${skill.targetLevel}%` }}
+                        title={`Target: ${skill.targetLevel}%`}
+                      >
+                        <div className={`w-1 h-1 rounded-full ${skill.level >= skill.targetLevel ? 'bg-emerald-400' : 'bg-indigo-400'}`} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -209,26 +240,42 @@ export default function SkillsPage() {
                 </div>
 
                 {/* Timeline Step pathway */}
-                <div className="relative pl-6 border-l border-border space-y-6">
+                <div className="relative pl-8 space-y-6">
+                  {/* Left Timeline Line */}
+                  <div className="absolute left-3 top-3 bottom-3 w-0.5 bg-zinc-850 dark:bg-zinc-800" />
+
                   {roadmap.steps.map((step: any) => {
                     const status = getStepStatusStyles(step.status);
                     return (
                       <div key={step.id} className="relative">
-                        {/* Dot */}
-                        <div className={`absolute -left-[32px] top-1.5 h-3 w-3 rounded-full border border-background ${status.dot}`}></div>
+                        {/* Dot indicator */}
+                        <div className={`absolute -left-[30px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-zinc-900 flex items-center justify-center z-10 ${status.dot}`}>
+                          {step.status === 'current' && (
+                            <span className="absolute -inset-1 rounded-full border border-amber-500 animate-ping opacity-60" />
+                          )}
+                        </div>
                         
-                        <div className={`p-4 rounded-xl border ${status.color}`}>
-                          <div className="flex justify-between items-start">
-                            <h4 className="text-xs font-bold text-zinc-200">{step.title}</h4>
-                            <span className="text-[9px] font-bold uppercase opacity-80">{step.duration}</span>
+                        <div className={`p-5 rounded-2xl border transition-all duration-300 hover:shadow-lg ${status.color}`}>
+                          <div className="flex justify-between items-start flex-wrap gap-2">
+                            <div>
+                              <div className="flex items-center gap-2.5 flex-wrap">
+                                <h4 className="text-xs font-bold text-zinc-200">{step.title}</h4>
+                                <span className={`text-[9px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${status.badge}`}>
+                                  {status.badgeText}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground leading-relaxed mt-2">{step.description}</p>
+                            </div>
+                            <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/5 border border-indigo-500/10 px-2.5 py-0.5 rounded-lg shrink-0">
+                              {step.duration}
+                            </span>
                           </div>
-                          <p className="text-[11px] text-muted-foreground leading-normal mt-2">{step.description}</p>
                           
                           {/* Resources tags */}
-                          <div className="flex flex-wrap gap-1.5 mt-3">
+                          <div className="flex flex-wrap gap-2 mt-4 pt-3.5 border-t border-border/40">
                             {step.resources.map((res: string, idx: number) => (
-                              <span key={idx} className="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 gap-1 border border-zinc-900">
-                                <BookOpen className="h-2.5 w-2.5" />
+                              <span key={idx} className="inline-flex items-center text-[9px] font-bold px-2.5 py-1 rounded bg-secondary/80 text-zinc-400 gap-1.5 border border-border/50 hover:bg-secondary transition-colors cursor-default">
+                                <BookOpen className="h-3 w-3 text-indigo-400" />
                                 {res}
                               </span>
                             ))}

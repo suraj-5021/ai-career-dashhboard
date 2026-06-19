@@ -108,29 +108,47 @@ export default function AdminPage() {
       {/* System diagnostics telemetry panel */}
       {metrics && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div className="glass-panel p-4 rounded-2xl border border-border/60">
-            <span className="text-zinc-500 block text-[9px] font-bold uppercase">System Uptime</span>
-            <span className="text-xs font-extrabold text-zinc-200 mt-2 block">{metrics.system.uptime}</span>
+          <div className="glass-panel p-4 rounded-2xl border border-border/60 hover:-translate-y-0.5 hover:shadow-md transition-all flex items-start justify-between">
+            <div>
+              <span className="text-zinc-550 text-zinc-550 text-zinc-500 block text-[9px] font-bold uppercase">System Uptime</span>
+              <span className="text-xs font-extrabold text-zinc-200 mt-2.5 block">{metrics.system.uptime}</span>
+            </div>
+            <Server className="h-4 w-4 text-zinc-500 shrink-0" />
           </div>
-          <div className="glass-panel p-4 rounded-2xl border border-border/60">
-            <span className="text-zinc-500 block text-[9px] font-bold uppercase">CPU Load</span>
-            <span className="text-xs font-extrabold text-indigo-400 mt-2 block">{metrics.system.cpuUsage}</span>
+          <div className="glass-panel p-4 rounded-2xl border border-border/60 hover:-translate-y-0.5 hover:shadow-md transition-all flex items-start justify-between">
+            <div>
+              <span className="text-zinc-550 text-zinc-500 block text-[9px] font-bold uppercase">CPU Load</span>
+              <span className="text-xs font-extrabold text-indigo-400 mt-2.5 block">{metrics.system.cpuUsage}</span>
+            </div>
+            <Cpu className="h-4 w-4 text-indigo-400 shrink-0" />
           </div>
-          <div className="glass-panel p-4 rounded-2xl border border-border/60">
-            <span className="text-zinc-500 block text-[9px] font-bold uppercase">RAM utilization</span>
-            <span className="text-[10px] font-bold text-zinc-200 mt-2 block truncate">{metrics.system.memoryUsage}</span>
+          <div className="glass-panel p-4 rounded-2xl border border-border/60 hover:-translate-y-0.5 hover:shadow-md transition-all flex items-start justify-between">
+            <div>
+              <span className="text-zinc-550 text-zinc-500 block text-[9px] font-bold uppercase">RAM Utilization</span>
+              <span className="text-[10px] font-bold text-zinc-200 mt-2.5 block truncate max-w-[90px]">{metrics.system.memoryUsage}</span>
+            </div>
+            <Database className="h-4 w-4 text-purple-400 shrink-0" />
           </div>
-          <div className="glass-panel p-4 rounded-2xl border border-border/60">
-            <span className="text-zinc-500 block text-[9px] font-bold uppercase">API Latency</span>
-            <span className="text-xs font-extrabold text-emerald-400 mt-2 block">{metrics.system.apiLatency}</span>
+          <div className="glass-panel p-4 rounded-2xl border border-border/60 hover:-translate-y-0.5 hover:shadow-md transition-all flex items-start justify-between">
+            <div>
+              <span className="text-zinc-550 text-zinc-500 block text-[9px] font-bold uppercase">API Latency</span>
+              <span className="text-xs font-extrabold text-emerald-400 mt-2.5 block">{metrics.system.apiLatency}</span>
+            </div>
+            <Activity className="h-4 w-4 text-emerald-400 shrink-0 animate-pulse" />
           </div>
-          <div className="glass-panel p-4 rounded-2xl border border-border/60">
-            <span className="text-zinc-500 block text-[9px] font-bold uppercase">Database Status</span>
-            <span className="text-[9px] font-bold text-zinc-300 mt-2 block leading-normal">{metrics.system.dbConnection}</span>
+          <div className="glass-panel p-4 rounded-2xl border border-border/60 hover:-translate-y-0.5 hover:shadow-md transition-all flex items-start justify-between">
+            <div>
+              <span className="text-zinc-550 text-zinc-500 block text-[9px] font-bold uppercase">Database Status</span>
+              <span className="text-[9px] font-bold text-amber-400 mt-2.5 block leading-normal">{metrics.system.dbConnection}</span>
+            </div>
+            <Database className="h-4 w-4 text-amber-500 shrink-0" />
           </div>
-          <div className="glass-panel p-4 rounded-2xl border border-border/60">
-            <span className="text-zinc-500 block text-[9px] font-bold uppercase">Active Sockets</span>
-            <span className="text-xs font-extrabold text-zinc-200 mt-2 block">{metrics.system.activeSockets} connections</span>
+          <div className="glass-panel p-4 rounded-2xl border border-border/60 hover:-translate-y-0.5 hover:shadow-md transition-all flex items-start justify-between">
+            <div>
+              <span className="text-zinc-550 text-zinc-500 block text-[9px] font-bold uppercase">Active Sockets</span>
+              <span className="text-xs font-extrabold text-zinc-200 mt-2.5 block">{metrics.system.activeSockets} live</span>
+            </div>
+            <Users className="h-4 w-4 text-zinc-400 shrink-0" />
           </div>
         </div>
       )}
@@ -139,7 +157,7 @@ export default function AdminPage() {
         
         {/* Left: Users Management list */}
         <div className="lg:col-span-2 glass-panel p-6 rounded-3xl border border-border/60">
-          <h3 className="font-extrabold text-sm mb-4 flex items-center gap-2">
+          <h3 className="font-extrabold text-sm mb-4 flex items-center gap-2 text-white">
             <Users className="h-4.5 w-4.5 text-indigo-400" />
             Users Management Registry
           </h3>
@@ -148,20 +166,22 @@ export default function AdminPage() {
             <table className="w-full text-xs text-left divide-y divide-border/60">
               <thead className="bg-secondary/40 text-muted-foreground font-bold text-[10px] uppercase tracking-wider">
                 <tr>
-                  <th className="px-4 py-2.5">User</th>
-                  <th className="px-4 py-2.5">Email</th>
-                  <th className="px-4 py-2.5">Role</th>
-                  <th className="px-4 py-2.5 text-right">Actions</th>
+                  <th className="px-4 py-3">User</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Role</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60 font-semibold">
                 {users.map((usr) => (
-                  <tr key={usr.id || usr._id} className="hover:bg-secondary/20">
+                  <tr key={usr.id || usr._id} className="hover:bg-secondary/20 transition-colors">
                     <td className="px-4 py-3 font-bold text-zinc-200">{usr.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{usr.email}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-[9px] px-2 py-0.5 rounded font-extrabold ${
-                        usr.role === 'admin' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15' : 'bg-zinc-800 text-zinc-400'
+                      <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-extrabold uppercase ${
+                        usr.role === 'admin' 
+                          ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' 
+                          : 'bg-zinc-800/85 bg-zinc-800 text-zinc-400 border border-zinc-700/30'
                       }`}>
                         {usr.role}
                       </span>
@@ -170,9 +190,9 @@ export default function AdminPage() {
                       <button
                         onClick={() => handleRoleToggle(usr.id || usr._id, usr.role)}
                         disabled={updatingId === (usr.id || usr._id)}
-                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold disabled:opacity-50 cursor-pointer"
+                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-extrabold disabled:opacity-50 cursor-pointer transition-colors"
                       >
-                        Toggle Role
+                        {updatingId === (usr.id || usr._id) ? 'Updating...' : 'Toggle Role'}
                       </button>
                     </td>
                   </tr>

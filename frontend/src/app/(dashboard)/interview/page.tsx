@@ -134,6 +134,11 @@ export default function InterviewPage() {
           <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 no-scrollbar">
             {questions.map((q) => {
               const isSelected = selectedQuestion?._id === q._id;
+              const borderLColor = 
+                q.difficulty === 'Easy' ? 'border-l-4 border-l-emerald-500' :
+                q.difficulty === 'Medium' ? 'border-l-4 border-l-amber-500' :
+                'border-l-4 border-l-rose-500';
+
               return (
                 <button
                   key={q._id}
@@ -141,7 +146,7 @@ export default function InterviewPage() {
                     setSelectedQuestion(q);
                     setUserAnswer(q.userAnswer || '');
                   }}
-                  className={`w-full p-4 rounded-2xl border text-left transition-all cursor-pointer flex justify-between items-start gap-3 relative ${
+                  className={`w-full p-4 rounded-2xl border text-left transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer flex justify-between items-start gap-3 relative ${borderLColor} ${
                     isSelected 
                       ? 'bg-primary/5 border-primary shadow-md' 
                       : 'bg-card border-border/80 hover:bg-secondary/40'
@@ -152,7 +157,7 @@ export default function InterviewPage() {
                       <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border uppercase ${getDifficultyColor(q.difficulty)}`}>
                         {q.difficulty}
                       </span>
-                      <span className="text-[9px] text-zinc-500 font-bold uppercase">{q.category}</span>
+                      <span className="text-[9px] text-zinc-550 text-zinc-500 font-bold uppercase">{q.category}</span>
                     </div>
                     <h4 className="text-xs font-bold truncate mt-2 text-zinc-200">{q.question}</h4>
                   </div>
@@ -225,41 +230,63 @@ export default function InterviewPage() {
                 /* Response grading feedback */
                 <div className="space-y-6 animate-fade-in">
                   
-                  {/* Feedback summary stats */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-2xl flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400"><Trophy className="h-5 w-5" /></div>
-                      <div>
-                        <span className="text-zinc-500 text-[9px] font-bold uppercase">Grading Score</span>
-                        <span className="text-xl font-extrabold block text-emerald-400 mt-0.5">{selectedQuestion.score} / 100</span>
-                      </div>
-                    </div>
+                  {/* Feedback summary stats with Score Gauge */}
+                  <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-secondary/25 border border-border/50 rounded-2xl">
+                    {(() => {
+                      const score = selectedQuestion.score || 0;
+                      const strokeColor = score >= 80 ? '#34d399' : score >= 60 ? '#fbbf24' : '#f87171';
+                      
+                      return (
+                        <div className="relative h-24 w-24 flex items-center justify-center shrink-0">
+                          <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="42" stroke="#1f2937" strokeWidth="6" fill="transparent" className="dark:stroke-zinc-800" />
+                            <circle cx="50" cy="50" r="42" stroke={strokeColor} strokeWidth="6" strokeLinecap="round" fill="transparent" 
+                                    strokeDasharray={2 * Math.PI * 42} 
+                                    strokeDashoffset={2 * Math.PI * 42 * (1 - score / 100)} 
+                                    style={{ filter: `drop-shadow(0 0 3px ${strokeColor}50)` }}
+                            />
+                          </svg>
+                          <div className="flex flex-col items-center">
+                            <span className="text-2xl font-black text-white">{score}</span>
+                            <span className="text-[8px] text-zinc-500 font-extrabold uppercase tracking-wider">Score</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                     
-                    <div className="p-4 bg-indigo-500/5 border border-indigo-500/15 rounded-2xl flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400"><Sparkles className="h-5 w-5" /></div>
-                      <div>
-                        <span className="text-zinc-500 text-[9px] font-bold uppercase">Verdict Status</span>
-                        <span className="text-xs font-bold block text-zinc-200 mt-0.5">Response Evaluated</span>
+                    <div className="flex-1 space-y-2 text-xs text-left w-full">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-amber-400" />
+                        <span className="font-extrabold text-zinc-200 text-sm">Grading Analysis</span>
                       </div>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Your response has been evaluated by CareerOS AI. Review the grading summary and improvement blueprint recommendations below.
+                      </p>
                     </div>
                   </div>
 
                   {/* AI Comments */}
-                  <div className="p-4 bg-secondary/40 border border-border/50 rounded-2xl">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">AI Grading Feedback</span>
-                    <p className="text-xs text-zinc-300 leading-relaxed font-semibold">{selectedQuestion.feedback}</p>
+                  <div className="p-5 bg-indigo-500/[0.02] border border-indigo-500/10 rounded-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/[0.01] rounded-full blur-2xl pointer-events-none" />
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-2 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      AI Grading Feedback
+                    </span>
+                    <p className="text-xs text-zinc-200 leading-relaxed font-medium">{selectedQuestion.feedback}</p>
                   </div>
 
                   {/* Submitted Answer display */}
-                  <div className="p-4 bg-secondary/20 border border-border/30 rounded-2xl">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">Your Submitted Response</span>
-                    <p className="text-xs text-zinc-400 italic leading-relaxed">{selectedQuestion.userAnswer}</p>
+                  <div className="p-5 bg-secondary/20 border border-border/40 rounded-2xl">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">Your Submitted Response</span>
+                    <div className="text-xs text-zinc-400 font-medium italic border-l-2 border-zinc-700 pl-3 leading-relaxed whitespace-pre-wrap">
+                      "{selectedQuestion.userAnswer}"
+                    </div>
                   </div>
 
                   {/* Suggested Answer key */}
-                  <div className="p-4 bg-indigo-950/10 border border-indigo-500/10 rounded-2xl">
-                    <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block mb-2">Suggested Answer Blueprint</span>
-                    <p className="text-xs text-zinc-400 leading-relaxed">{selectedQuestion.suggestedAnswer}</p>
+                  <div className="p-5 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl border-l-4 border-l-indigo-500">
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-2">Suggested Answer Blueprint</span>
+                    <p className="text-xs text-zinc-300 leading-relaxed font-medium whitespace-pre-wrap">{selectedQuestion.suggestedAnswer}</p>
                   </div>
 
                   <button

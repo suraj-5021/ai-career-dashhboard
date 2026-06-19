@@ -4,9 +4,27 @@ import React, { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+  BarChart, Bar, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Cell
 } from 'recharts';
 import { AreaChart as ChartIcon, Sparkles, TrendingUp, Award, Loader2 } from 'lucide-react';
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="glass-panel p-3 border border-border/80 rounded-xl text-[10px] space-y-1 shadow-xl bg-zinc-950/80 backdrop-blur-md">
+        <p className="font-extrabold text-zinc-300 mb-1">{label}</p>
+        {payload.map((pld: any, idx: number) => (
+          <div key={idx} className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: pld.stroke || pld.fill }} />
+            <span className="text-muted-foreground font-semibold">{pld.name}:</span>
+            <span className="font-extrabold text-white">{pld.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function AnalyticsPage() {
   const [jobs, setJobs] = useState<any[]>([]);
@@ -137,7 +155,7 @@ export default function AnalyticsPage() {
                 </defs>
                 <XAxis dataKey="month" stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: '#0d0c15', border: '1px solid #222030', color: '#fff', fontSize: '11px' }} />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                 <Area name="Applications" type="monotone" dataKey="applications" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#appGradient)" />
                 <Area name="Interviews" type="monotone" dataKey="interviews" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#intGradient)" />
@@ -152,10 +170,37 @@ export default function AnalyticsPage() {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={industryData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="fintechGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="100%" stopColor="#4f46e5" />
+                  </linearGradient>
+                  <linearGradient id="saasGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#a855f7" />
+                    <stop offset="100%" stopColor="#9333ea" />
+                  </linearGradient>
+                  <linearGradient id="cloudGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ec4899" />
+                    <stop offset="100%" stopColor="#db2777" />
+                  </linearGradient>
+                  <linearGradient id="edtechGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#14b8a6" />
+                    <stop offset="100%" stopColor="#0d9488" />
+                  </linearGradient>
+                  <linearGradient id="healthGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f59e0b" />
+                    <stop offset="100%" stopColor="#d97706" />
+                  </linearGradient>
+                </defs>
                 <XAxis dataKey="name" stroke="#888888" fontSize={9} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888888" fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: '#0d0c15', border: '1px solid #222030', color: '#fff', fontSize: '11px' }} />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]} name="Interest Index" />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} name="Interest Index">
+                  {industryData.map((entry, index) => {
+                    const grads = ["url(#fintechGrad)", "url(#saasGrad)", "url(#cloudGrad)", "url(#edtechGrad)", "url(#healthGrad)"];
+                    return <Cell key={`cell-${index}`} fill={grads[index % grads.length]} />;
+                  })}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -167,10 +212,17 @@ export default function AnalyticsPage() {
           <div className="h-64 w-full flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="75%" data={skillsRadarData}>
+                <defs>
+                  <linearGradient id="radarGradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#818cf8" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#c084fc" stopOpacity={0.4} />
+                  </linearGradient>
+                </defs>
                 <PolarGrid stroke="#222030" />
                 <PolarAngleAxis dataKey="subject" stroke="#888888" fontSize={9} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#444" fontSize={8} />
-                <Radar name="Target Competency" dataKey="A" stroke="#818cf8" fill="#818cf8" fillOpacity={0.15} />
+                <Radar name="Target Competency" dataKey="A" stroke="#818cf8" fill="url(#radarGradient)" fillOpacity={1} />
+                <Tooltip content={<CustomTooltip />} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -181,21 +233,21 @@ export default function AnalyticsPage() {
           <div>
             <h3 className="font-extrabold text-sm mb-4">Application Outcomes Funnel</h3>
             <div className="space-y-3.5 text-xs">
-              <div className="flex justify-between items-center pb-2 border-b border-border/60">
+              <div className="flex justify-between items-center pb-2 border-b border-border/60 font-semibold">
                 <span className="text-zinc-400">Total Applications Logged</span>
                 <span className="font-bold text-zinc-200">{stats.total}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-border/60">
+              <div className="flex justify-between items-center pb-2 border-b border-border/60 font-semibold">
                 <span className="text-zinc-400">Interviews Call-backs</span>
                 <span className="font-bold text-amber-400">{stats.interviewing}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-border/60">
+              <div className="flex justify-between items-center pb-2 border-b border-border/60 font-semibold">
                 <span className="text-zinc-400">Offers Extended</span>
                 <span className="font-bold text-emerald-400">{stats.offered}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-border/60">
+              <div className="flex justify-between items-center pb-2 border-b border-border/60 font-semibold">
                 <span className="text-zinc-400">Rejections Logged</span>
-                <span className="font-bold text-red-400">{stats.rejected}</span>
+                <span className="font-bold text-rose-400">{stats.rejected}</span>
               </div>
             </div>
           </div>
