@@ -98,23 +98,16 @@
 ## 📸 Screenshots
 
 ### Dashboard
-
+![Dashboard](./screenshots/dashboardai.png)
 
 ### Resume Analyzer
-
-(Add Screenshot)
-
-### Interview Prep
-
-(Add Screenshot)
+![Resume Analyzer](./screenshots/resumeanalyzer.png)
 
 ### Skills & Roadmap
-
-(Add Screenshot)
+![Skills & Roadmap](./screenshots/skill-roadmap.png)
 
 ### Analytics
-
-(Add Screenshot)
+![Analytics](./screenshots/analytics.png)
 
 ---
 
