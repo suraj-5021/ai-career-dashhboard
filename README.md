@@ -1,6 +1,6 @@
 # 🚀 AI CareerOS
 
-live: https://ai-careeros-theta.vercel.app/dashboard
+live: https://ai-careeros-theta.vercel.app/login
 
 
 <p align="center">
