@@ -17,6 +17,7 @@ export default function TrackerPage() {
   
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState<any | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState<any | null>(null);
   const [showInterviewModal, setShowInterviewModal] = useState<any | null>(null);
   
@@ -129,6 +130,27 @@ export default function TrackerPage() {
       setShowDetailsModal(null);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleEditJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!company || !position || !showEditModal) return;
+    setSaving(true);
+    const id = showEditModal._id;
+    try {
+      const res = await api.jobs.updateJob(id, {
+        company, position, status, salaryRange, location, jobType, notes
+      });
+      if (res.success) {
+        setJobs(prev => prev.map(j => j._id === id ? res.data : j));
+        setShowEditModal(null);
+        resetForm();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -460,6 +482,23 @@ export default function TrackerPage() {
                 <Trash2 className="h-4 w-4" />
                 Remove Card
               </button>
+              <button
+                onClick={() => {
+                  setShowEditModal(showDetailsModal);
+                  setCompany(showDetailsModal.company);
+                  setPosition(showDetailsModal.position);
+                  setStatus(showDetailsModal.status);
+                  setSalaryRange(showDetailsModal.salaryRange || '');
+                  setLocation(showDetailsModal.location || '');
+                  setJobType(showDetailsModal.jobType || 'Remote');
+                  setNotes(showDetailsModal.notes || '');
+                  setShowDetailsModal(null);
+                }}
+                className="px-3.5 py-2 hover:bg-indigo-500/10 text-indigo-400 border border-transparent hover:border-indigo-500/20 text-xs font-semibold rounded-lg flex items-center gap-1.5 cursor-pointer ml-auto mr-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit Details
+              </button>
               <button onClick={() => setShowDetailsModal(null)} className="px-4 py-2 border border-border text-xs font-semibold rounded-lg text-muted-foreground hover:bg-secondary cursor-pointer">Close</button>
             </div>
           </div>
@@ -493,6 +532,71 @@ export default function TrackerPage() {
                 <button type="submit" disabled={saving} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg flex items-center gap-1 cursor-pointer">
                   {saving && <Loader2 className="h-3 w-3 animate-spin" />}
                   Schedule Stage
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Edit Job Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="glass-panel w-full max-w-lg rounded-2xl p-6 border border-border shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-white mb-5">Edit Tracked Application</h3>
+            <form onSubmit={handleEditJob} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Company</label>
+                  <input type="text" required value={company} onChange={(e) => setCompany(e.target.value)} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 text-xs rounded-lg text-foreground focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Position / Role</label>
+                  <input type="text" required value={position} onChange={(e) => setPosition(e.target.value)} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 text-xs rounded-lg text-foreground focus:outline-none" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Status</label>
+                  <select value={status} onChange={(e) => setStatus(e.target.value as JobStatus)} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 text-xs rounded-lg text-muted-foreground focus:outline-none">
+                    <option value="applied">Applied</option>
+                    <option value="interviewing">Interviewing</option>
+                    <option value="offered">Offered</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Job Type</label>
+                  <select value={jobType} onChange={(e) => setJobType(e.target.value)} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 text-xs rounded-lg text-muted-foreground focus:outline-none">
+                    <option value="Remote">Remote</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Onsite">Onsite</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Location</label>
+                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. San Francisco, CA" className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 text-xs rounded-lg text-foreground focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Salary Range</label>
+                  <input type="text" value={salaryRange} onChange={(e) => setSalaryRange(e.target.value)} placeholder="e.g. $140k - $160k" className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 text-xs rounded-lg text-foreground focus:outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Notes / Description</label>
+                <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 text-xs rounded-lg text-foreground focus:outline-none resize-none" />
+              </div>
+              <div className="flex justify-end gap-2.5 pt-2">
+                <button type="button" onClick={() => {
+                  setShowDetailsModal(showEditModal);
+                  setShowEditModal(null);
+                  resetForm();
+                }} className="px-4 py-2 border border-border text-xs font-semibold rounded-lg text-muted-foreground hover:bg-secondary cursor-pointer">Cancel</button>
+                <button type="submit" disabled={saving} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg flex items-center gap-1 cursor-pointer">
+                  {saving && <Loader2 className="h-3 w-3 animate-spin" />}
+                  Save Changes
                 </button>
               </div>
             </form>

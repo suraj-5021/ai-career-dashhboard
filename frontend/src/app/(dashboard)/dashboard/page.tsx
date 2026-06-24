@@ -5,13 +5,44 @@ import { useAuth } from '@/context/AuthContext';
 import { api } from '@/services/api';
 import { 
   Briefcase, CheckCircle2, XCircle, Clock, 
-  Sparkles, Calendar, ChevronRight, TrendingUp 
+  Sparkles, Calendar, ChevronRight, TrendingUp,
+  Award, Flame, Send, X, Bot, User, MessageSquare
 } from 'lucide-react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
 } from 'recharts';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Animated Count Up component for stats cards
+function AnimatedCounter({ value, duration = 1.0, suffix = '' }: { value: number; duration?: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = value;
+    if (start === end) {
+      setCount(end);
+      return;
+    }
+    
+    const totalMiliseconds = duration * 1000;
+    const incrementTime = Math.max(Math.floor(totalMiliseconds / end), 25);
+    
+    const timer = setInterval(() => {
+      start += 1;
+      setCount(start);
+      if (start >= end) {
+        setCount(end);
+        clearInterval(timer);
+      }
+    }, incrementTime);
+    
+    return () => clearInterval(timer);
+  }, [value, duration]);
+  
+  return <span>{count}{suffix}</span>;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -19,6 +50,22 @@ export default function DashboardPage() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [roadmap, setRoadmap] = useState<any>(null);
+  const [greeting, setGreeting] = useState('Welcome back');
+
+  // Assistant states
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<any[]>([
+    { sender: 'bot', text: `Hi ${user?.name ? user.name.split(' ')[0] : 'Suraj'}! I am your AI Career Assistant. How can I accelerate your internship or job search prep today?` }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [typing, setTyping] = useState(false);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good Morning');
+    else if (hour < 18) setGreeting('Good Afternoon');
+    else setGreeting('Good Evening');
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -26,7 +73,6 @@ export default function DashboardPage() {
         const jobsRes = await api.jobs.getJobs();
         if (jobsRes.success) setJobs(jobsRes.data);
         
-        // Fetch roadmap for main skill to display in progress
         if (user?.skills?.length > 0) {
           const roadRes = await api.skills.getRoadmap(user.skills[0]);
           if (roadRes.success) setRoadmap(roadRes.data);
@@ -40,7 +86,6 @@ export default function DashboardPage() {
     loadData();
   }, [user]);
 
-  // Aggregate stats
   const stats = {
     applied: jobs.filter(j => j.status === 'applied').length,
     interviewing: jobs.filter(j => j.status === 'interviewing').length,
@@ -49,7 +94,6 @@ export default function DashboardPage() {
     total: jobs.length
   };
 
-  // Pre-seed chart data matching current dates
   const applicationHistory = [
     { name: 'Jan', applied: 3, interviews: 1 },
     { name: 'Feb', applied: 5, interviews: 2 },
@@ -59,7 +103,6 @@ export default function DashboardPage() {
     { name: 'Jun', applied: stats.total, interviews: stats.interviewing + stats.offered }
   ];
 
-  // Upcomings mock interviews list
   const upcomingInterviews = jobs
     .filter(j => j.status === 'interviewing' && j.interviews?.length > 0)
     .flatMap(j => j.interviews.map((i: any) => ({
@@ -72,12 +115,55 @@ export default function DashboardPage() {
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, 3);
 
+  // Quick Action response handlers
+  const handleAssistantPrompt = async (prompt: string, text: string) => {
+    setChatMessages(prev => [...prev, { sender: 'user', text }]);
+    setTyping(true);
+    try {
+      const response = await api.chat.sendMessage(text);
+      if (response && response.success && response.reply) {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: response.reply }]);
+      } else {
+        throw new Error('Invalid chat response');
+      }
+    } catch (err) {
+      console.error('Chat error:', err);
+      setChatMessages(prev => [...prev, { sender: 'bot', text: "I'm having trouble connecting to my brain right now. Try checking your internet connection or backend server settings." }]);
+    } finally {
+      setTyping(false);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputMessage.trim()) return;
+
+    const userText = inputMessage;
+    setChatMessages(prev => [...prev, { sender: 'user', text: userText }]);
+    setInputMessage('');
+    setTyping(true);
+
+    try {
+      const response = await api.chat.sendMessage(userText);
+      if (response && response.success && response.reply) {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: response.reply }]);
+      } else {
+        throw new Error('Invalid chat response');
+      }
+    } catch (err) {
+      console.error('Chat error:', err);
+      setChatMessages(prev => [...prev, { sender: 'bot', text: "I'm having trouble connecting to my brain right now. Try checking your internet connection or backend server settings." }]);
+    } finally {
+      setTyping(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="h-10 w-2/3 skeleton-shimmer rounded-xl" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
             <div key={i} className="h-28 skeleton-shimmer rounded-2xl" />
           ))}
         </div>
@@ -89,46 +175,69 @@ export default function DashboardPage() {
     );
   }
 
-  // Dashboard cards styling configs
-  const statCards = [
-    { title: 'Applied', value: stats.applied, label: 'applications tracked', icon: Briefcase, colorClass: 'text-indigo-400', borderClass: 'border-l-indigo-500', bgClass: 'bg-indigo-500/5 hover:bg-indigo-500/10' },
-    { title: 'Interviewing', value: stats.interviewing, label: 'loops active', icon: Clock, colorClass: 'text-amber-400', borderClass: 'border-l-amber-500', bgClass: 'bg-amber-500/5 hover:bg-amber-500/10' },
-    { title: 'Offered', value: stats.offered, label: 'proposals extended', icon: CheckCircle2, colorClass: 'text-emerald-400', borderClass: 'border-l-emerald-500', bgClass: 'bg-emerald-500/5 hover:bg-emerald-500/10' },
-    { title: 'Rejected', value: stats.rejected, label: 'pipelines closed', icon: XCircle, colorClass: 'text-rose-400', borderClass: 'border-l-rose-500', bgClass: 'bg-rose-500/5 hover:bg-rose-500/10' }
+  // Optimized AI Career metrics (Replacing generic jobs tracker stats)
+  const metricCards = [
+    { title: 'Resume Score', value: 84, suffix: '/100', label: 'Goal: 90+ ATS score', icon: Award, colorClass: 'text-emerald-400', borderClass: 'border-l-emerald-500', bgClass: 'bg-emerald-500/5 hover:bg-emerald-500/10' },
+    { title: 'Interview Readiness', value: 72, suffix: '%', label: 'Goal: 85% mock readiness', icon: Sparkles, colorClass: 'text-indigo-400', borderClass: 'border-l-indigo-500', bgClass: 'bg-indigo-500/5 hover:bg-indigo-500/10' },
+    { title: 'Job Match Rate', value: 88, suffix: '%', label: 'Based on current skills', icon: CheckCircle2, colorClass: 'text-purple-400', borderClass: 'border-l-purple-500', bgClass: 'bg-purple-500/5 hover:bg-purple-500/10' },
+    { title: 'Career Progress', value: 65, suffix: '%', label: 'Completed roadmap steps', icon: TrendingUp, colorClass: 'text-amber-400', borderClass: 'border-l-amber-500', bgClass: 'bg-amber-500/5 hover:bg-amber-500/10' },
+    { title: 'Skills Mastered', value: 12, suffix: '', label: '6 active goals in progress', icon: Briefcase, colorClass: 'text-pink-400', borderClass: 'border-l-pink-500', bgClass: 'bg-pink-500/5 hover:bg-pink-500/10' },
+    { title: 'Weekly Learning Streak', value: 5, suffix: ' Days', label: 'Streak target: 7 days', icon: Flame, colorClass: 'text-orange-400', borderClass: 'border-l-orange-500', bgClass: 'bg-orange-500/5 hover:bg-orange-500/10' }
   ];
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-16 relative">
       
       {/* ========================================== */}
-      {/* WELCOME BANNER (Glassmorphic) */}
+      {/* PERSONALIZED AI HERO SECTION (Glassmorphic) */}
       {/* ========================================== */}
-      <div className="relative p-6 lg:p-8 rounded-3xl overflow-hidden glass-panel border border-border/40 bg-zinc-950/20 shadow-xl">
+      <div className="relative p-6 lg:p-8 rounded-3xl overflow-hidden glass-panel border border-border/40 bg-zinc-950/20 shadow-xl animate-fade-in">
         <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
-          <div>
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 relative z-10">
+          <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Welcome back, <span className="text-gradient">{user?.name}</span>
+              {greeting}, <span className="text-gradient">{user?.name || 'Suraj'}</span> 👋
             </h1>
-            <p className="text-muted-foreground text-xs mt-1.5 font-semibold">
-              Currently targeting <span className="text-indigo-400">{user?.targetTitle || 'Software Engineer'}</span> positions. You have {stats.interviewing} active interview loops.
+            <p className="text-muted-foreground text-xs sm:text-sm font-semibold max-w-xl leading-relaxed">
+              Targeting <span className="text-indigo-400 font-bold">{user?.targetTitle || 'Full Stack Developer'}</span>. You have completed <span className="text-emerald-400 font-bold">78%</span> of your profile. Upload your latest resume to analyze modern skill gaps.
             </p>
+            <div className="flex flex-wrap gap-4 pt-2">
+              <div className="flex items-center gap-2 text-xs text-zinc-400 font-medium bg-secondary/40 border border-border/60 px-3 py-1.5 rounded-xl">
+                <span className="text-zinc-500">Resume Score:</span>
+                <span className="font-extrabold text-emerald-400">84/100</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-zinc-400 font-medium bg-secondary/40 border border-border/60 px-3 py-1.5 rounded-xl">
+                <span className="text-zinc-500">Placement Readiness:</span>
+                <span className="font-extrabold text-indigo-400 font-sans">72%</span>
+              </div>
+            </div>
           </div>
-          <Link 
-            href="/tracker" 
-            className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Manage Applications
-            <ChevronRight className="h-4 w-4" />
-          </Link>
+          
+          <div className="p-5 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 max-w-md w-full space-y-2.5">
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-indigo-400 flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 animate-pulse" /> Next Recommendation
+            </span>
+            <p className="text-xs text-zinc-200 font-semibold leading-relaxed">
+              Learn Docker and deploy a MERN project.
+            </p>
+            <div className="relative pt-1">
+              <div className="flex justify-between items-center text-[10px] text-zinc-400 mb-1 font-bold">
+                <span>Placement Readiness</span>
+                <span>72%</span>
+              </div>
+              <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-zinc-800">
+                <div style={{ width: '72%' }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500 transition-all duration-500"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ========================================== */}
       {/* STATISTICS GRID */}
       {/* ========================================== */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((card, idx) => {
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {metricCards.map((card, idx) => {
           const Icon = card.icon;
           return (
             <motion.div
@@ -139,11 +248,13 @@ export default function DashboardPage() {
               className={`glass-card p-5 rounded-2xl flex flex-col justify-between border-l-4 ${card.borderClass} ${card.bgClass} cursor-pointer shadow-md`}
             >
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{card.title}</span>
-                <div className={`p-2 rounded-xl bg-zinc-900/60 border border-zinc-800 ${card.colorClass}`}><Icon className="h-4 w-4" /></div>
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{card.title}</span>
+                <div className={`p-2 rounded-xl bg-zinc-900/60 border border-zinc-800 ${card.colorClass}`}><Icon className="h-4.5 w-4.5" /></div>
               </div>
               <div className="mt-4">
-                <h3 className="text-3xl font-extrabold text-white">{card.value}</h3>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+                  <AnimatedCounter value={card.value} suffix={card.suffix} />
+                </h3>
                 <span className="text-[9px] text-zinc-500 font-bold mt-1.5 block uppercase tracking-wider">{card.label}</span>
               </div>
             </motion.div>
@@ -221,22 +332,21 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right Column (AI Insights, Completion, Upcoming) */}
+        {/* Right Column (Upcoming Schedule & AI Insights) */}
         <div className="space-y-6">
           
           {/* Profile Completion Score Dial */}
           <div className="glass-panel p-6 rounded-2xl border border-border/50 bg-zinc-950/10 flex flex-col items-center justify-center text-center">
             <h3 className="font-extrabold text-[10px] uppercase tracking-widest text-muted-foreground mb-4">Profile Completion</h3>
             <div className="relative h-28 w-28 flex items-center justify-center">
-              {/* Radial circle representation */}
               <svg className="absolute w-full h-full transform -rotate-90">
                 <circle cx="56" cy="56" r="46" stroke="currentColor" className="text-zinc-900" strokeWidth="6" fill="transparent" />
                 <circle cx="56" cy="56" r="46" stroke="currentColor" className="text-indigo-500" strokeWidth="6" fill="transparent" 
                         strokeDasharray={2 * Math.PI * 46} 
-                        strokeDashoffset={2 * Math.PI * 46 * (1 - (user?.profileCompletion || 78) / 100)} 
+                        strokeDashoffset={2 * Math.PI * 46 * (1 - 78 / 100)} 
                         strokeLinecap="round" />
               </svg>
-              <span className="text-2xl font-extrabold text-white">{user?.profileCompletion || 78}%</span>
+              <span className="text-2xl font-extrabold text-white">78%</span>
             </div>
             <p className="text-[10px] text-zinc-400 font-bold mt-4 leading-normal">
               Add your current resume to raise your score to <span className="text-emerald-400">90%+</span>
@@ -251,8 +361,8 @@ export default function DashboardPage() {
               <h3 className="font-bold text-[10px] uppercase tracking-wider">AI Pilot Insights</h3>
             </div>
             <ul className="space-y-3.5 text-[11px] font-semibold leading-relaxed">
-              <li className="text-zinc-400">
-                <span className="font-extrabold text-zinc-200">ATS Keyword Deficit:</span> Based on your target title <span className="text-indigo-400">{user?.targetTitle || 'Software Engineer'}</span>, you are missing 4 keywords. Consider uploading your resume.
+              <li className="text-zinc-405 text-zinc-400">
+                <span className="font-extrabold text-zinc-200 font-sans">ATS Keyword Deficit:</span> Based on your target title <span className="text-indigo-400">{user?.targetTitle || 'Full Stack Developer'}</span>, you are missing 4 keywords. Consider uploading your resume.
               </li>
               <li className="text-zinc-400">
                 <span className="font-extrabold text-zinc-200">Interview Readiness:</span> You have an upcoming loop. Try running mock questions on SSR/SSG.
@@ -260,7 +370,7 @@ export default function DashboardPage() {
             </ul>
           </div>
 
-          {/* Upcoming mock schedule / interviews list */}
+          {/* Upcoming mock schedule */}
           <div className="glass-panel p-6 rounded-2xl border border-border/50 bg-zinc-950/10">
             <h3 className="font-extrabold text-sm text-white mb-4">Upcoming Schedule</h3>
             <div className="space-y-3.5">
@@ -284,6 +394,141 @@ export default function DashboardPage() {
 
         </div>
 
+      </div>
+
+      {/* ========================================== */}
+      {/* FLOATING AI CAREER ASSISTANT WIDGET */}
+      {/* ========================================== */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        {/* Chat window panel */}
+        <AnimatePresence>
+          {assistantOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.95 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              className="w-80 sm:w-96 h-[480px] rounded-3xl glass-panel border border-border bg-zinc-950/95 shadow-2xl flex flex-col overflow-hidden mb-4 mr-0"
+            >
+              {/* Chat Header */}
+              <div className="p-4 bg-secondary/50 border-b border-border flex justify-between items-center shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8.5 w-8.5 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <Bot className="h-4.5 w-4.5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white leading-tight">CareerOS AI Assistant</h4>
+                    <span className="text-[9px] text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Online
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setAssistantOpen(false)}
+                  className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-white transition-colors cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
+                  aria-label="Minimize assistant"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Chat Messages */}
+              <div className="flex-1 p-4 overflow-y-auto no-scrollbar space-y-3.5">
+                {chatMessages.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-start gap-2.5 max-w-[85%] ${
+                      msg.sender === 'user' ? 'ml-auto flex-row-reverse' : ''
+                    }`}
+                  >
+                    <div className={`p-2 rounded-xl shrink-0 ${
+                      msg.sender === 'user' ? 'bg-indigo-650 text-indigo-400 border border-indigo-500/20' : 'bg-secondary/40 text-muted-foreground border border-border/40'
+                    }`}>
+                      {msg.sender === 'user' ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5 text-indigo-400" />}
+                    </div>
+                    <div className={`p-3.5 rounded-2xl text-xs leading-relaxed font-medium ${
+                      msg.sender === 'user'
+                        ? 'bg-indigo-600 text-white rounded-tr-none'
+                        : 'bg-secondary/50 text-zinc-200 border border-border/40 rounded-tl-none'
+                    }`}>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+                {typing && (
+                  <div className="flex items-start gap-2.5 max-w-[85%]">
+                    <div className="p-2 rounded-xl bg-secondary/40 text-indigo-400 shrink-0 border border-border/40">
+                      <Bot className="h-3.5 w-3.5 animate-pulse" />
+                    </div>
+                    <div className="bg-secondary/50 text-zinc-400 border border-border/40 px-4 py-3 rounded-2xl rounded-tl-none text-xs flex gap-1 items-center font-bold">
+                      <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Pre-seeded prompts */}
+              <div className="px-4 py-2 border-t border-border bg-muted/20 shrink-0 flex flex-wrap gap-1.5 max-h-24 overflow-y-auto no-scrollbar">
+                <button
+                  onClick={() => handleAssistantPrompt('resume', 'Review my ATS score')}
+                  className="px-2.5 py-1.5 rounded-lg border border-border bg-zinc-950/45 hover:bg-secondary text-[9px] font-bold text-zinc-350 hover:text-white transition-all cursor-pointer min-h-[28px] flex items-center justify-center"
+                >
+                  Resume ATS check
+                </button>
+                <button
+                  onClick={() => handleAssistantPrompt('roadmap', 'Show next roadmap step')}
+                  className="px-2.5 py-1.5 rounded-lg border border-border bg-zinc-950/45 hover:bg-secondary text-[9px] font-bold text-zinc-350 hover:text-white transition-all cursor-pointer min-h-[28px] flex items-center justify-center"
+                >
+                  Next roadmap step
+                </button>
+                <button
+                  onClick={() => handleAssistantPrompt('interview', 'How to practice mock loops')}
+                  className="px-2.5 py-1.5 rounded-lg border border-border bg-zinc-950/45 hover:bg-secondary text-[9px] font-bold text-zinc-350 hover:text-white transition-all cursor-pointer min-h-[28px] flex items-center justify-center"
+                >
+                  Interview practice
+                </button>
+                <button
+                  onClick={() => handleAssistantPrompt('skills', 'Target full-stack skills')}
+                  className="px-2.5 py-1.5 rounded-lg border border-border bg-zinc-950/45 hover:bg-secondary text-[9px] font-bold text-zinc-350 hover:text-white transition-all cursor-pointer min-h-[28px] flex items-center justify-center"
+                >
+                  Recommend skills
+                </button>
+              </div>
+
+              {/* Chat Input */}
+              <form onSubmit={handleSendMessage} className="p-3.5 border-t border-border bg-secondary/30 shrink-0 flex gap-2">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Ask a career question..."
+                  className="flex-1 px-3.5 py-2.5 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-foreground focus:outline-none focus:border-indigo-500 placeholder-zinc-500 min-h-[40px]"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputMessage.trim()}
+                  className="px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl flex items-center justify-center transition-all disabled:opacity-50 shadow-md shadow-indigo-600/10 cursor-pointer min-w-[40px] min-h-[40px]"
+                  aria-label="Send message"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Floating action button trigger */}
+        <button
+          onClick={() => setAssistantOpen(!assistantOpen)}
+          className={`h-14 w-14 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/25 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer z-50 min-h-[56px] min-w-[56px] ${
+            assistantOpen ? 'rotate-90 bg-indigo-600' : ''
+          }`}
+          aria-label="Open AI Assistant"
+        >
+          {assistantOpen ? <X className="h-6 w-6" /> : <MessageSquare className="h-6 w-6" />}
+        </button>
       </div>
 
     </div>

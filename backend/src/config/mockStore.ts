@@ -1,4 +1,10 @@
 import bcrypt from 'bcrypt';
+import User from '../models/User';
+import Job from '../models/Job';
+import Skill from '../models/Skill';
+import Question from '../models/Question';
+import Notification from '../models/Notification';
+import { isConnected } from './db';
 
 // In-Memory collections for database fallback
 export let mockUsers: any[] = [];
@@ -7,12 +13,12 @@ export let mockSkills: any[] = [];
 export let mockQuestions: any[] = [];
 export let mockNotifications: any[] = [];
 
-// Seed the in-memory collections with startup-quality data
+// Seed the collections with startup-quality data
 export async function seedMockStore() {
   const hashedPassword = await bcrypt.hash('password123', 10);
   
   // 1. Seed Users
-  mockUsers = [
+  const usersData = [
     {
       _id: '666a00000000000000000001',
       name: 'Suraj Kumar',
@@ -46,7 +52,7 @@ export async function seedMockStore() {
   ];
 
   // 2. Seed Job Applications
-  mockJobs = [
+  const jobsData = [
     {
       _id: '666b00000000000000000001',
       userId: '666a00000000000000000001',
@@ -113,7 +119,7 @@ export async function seedMockStore() {
   ];
 
   // 3. Seed Skills
-  mockSkills = [
+  const skillsData = [
     { _id: '666c00000000000000000001', userId: '666a00000000000000000001', name: 'React & Next.js', level: 85, targetLevel: 95, category: 'Frontend', certifications: ['Vercel Certified React Developer'] },
     { _id: '666c00000000000000000002', userId: '666a00000000000000000001', name: 'TypeScript', level: 80, targetLevel: 90, category: 'Frontend', certifications: [] },
     { _id: '666c00000000000000000003', userId: '666a00000000000000000001', name: 'System Design', level: 45, targetLevel: 80, category: 'Backend', certifications: [] },
@@ -122,7 +128,7 @@ export async function seedMockStore() {
   ];
 
   // 4. Seed Interview Prep Questions
-  mockQuestions = [
+  const questionsData = [
     {
       _id: '666d00000000000000000001',
       userId: '666a00000000000000000001',
@@ -165,7 +171,7 @@ export async function seedMockStore() {
   ];
 
   // 5. Seed Notifications
-  mockNotifications = [
+  const notificationsData = [
     {
       _id: '666e00000000000000000001',
       userId: '666a00000000000000000001',
@@ -195,5 +201,58 @@ export async function seedMockStore() {
     }
   ];
 
-  console.log('[Mock Seed] In-Memory collections successfully seeded.');
+  mockUsers = [...usersData];
+  mockJobs = [...jobsData];
+  mockSkills = [...skillsData];
+  mockQuestions = [...questionsData];
+  mockNotifications = [...notificationsData];
+  console.log('[Mock Seed] In-Memory collections successfully initialized.');
+
+  if (isConnected) {
+    console.log('[Atlas Seed] DB is connected. Checking and seeding collections...');
+    try {
+      const userCount = await User.countDocuments();
+      if (userCount === 0) {
+        console.log('[Atlas Seed] Users collection is empty. Seeding users...');
+        await User.insertMany(usersData);
+      } else {
+        console.log(`[Atlas Seed] Users collection already has ${userCount} document(s). Skipping.`);
+      }
+
+      const jobCount = await Job.countDocuments();
+      if (jobCount === 0) {
+        console.log('[Atlas Seed] Jobs collection is empty. Seeding jobs...');
+        await Job.insertMany(jobsData);
+      } else {
+        console.log(`[Atlas Seed] Jobs collection already has ${jobCount} document(s). Skipping.`);
+      }
+
+      const skillCount = await Skill.countDocuments();
+      if (skillCount === 0) {
+        console.log('[Atlas Seed] Skills collection is empty. Seeding skills...');
+        await Skill.insertMany(skillsData);
+      } else {
+        console.log(`[Atlas Seed] Skills collection already has ${skillCount} document(s). Skipping.`);
+      }
+
+      const questionCount = await Question.countDocuments();
+      if (questionCount === 0) {
+        console.log('[Atlas Seed] Questions collection is empty. Seeding questions...');
+        await Question.insertMany(questionsData);
+      } else {
+        console.log(`[Atlas Seed] Questions collection already has ${questionCount} document(s). Skipping.`);
+      }
+
+      const notificationCount = await Notification.countDocuments();
+      if (notificationCount === 0) {
+        console.log('[Atlas Seed] Notifications collection is empty. Seeding notifications...');
+        await Notification.insertMany(notificationsData);
+      } else {
+        console.log(`[Atlas Seed] Notifications collection already has ${notificationCount} document(s). Skipping.`);
+      }
+      console.log('[Atlas Seed] Database seeding completed successfully.');
+    } catch (err: any) {
+      console.error('[Atlas Seed Error] Seeding failed:', err.message);
+    }
+  }
 }

@@ -101,19 +101,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col lg:flex-row relative">
+    <div className="min-h-screen bg-background text-foreground flex flex-col lg:flex-row relative overflow-x-hidden">
       
+      {/* Backdrop overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ========================================== */}
-      {/* DESKTOP SIDEBAR (Visible lg+) */}
+      {/* SIDEBAR (Slide-in mobile/tablet, Sticky desktop) */}
       {/* ========================================== */}
-      <aside className="hidden lg:flex flex-col w-64 bg-card border-r border-border h-screen sticky top-0 shrink-0 z-30 justify-between">
+      <aside 
+        className={`fixed lg:sticky top-0 bottom-0 left-0 z-50 lg:z-30 flex flex-col w-64 bg-card border-r border-border h-screen shrink-0 justify-between transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
         <div>
           {/* Logo Brand */}
-          <div className="px-6 py-6 flex items-center gap-3.5 border-b border-border">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <span className="text-white font-extrabold text-lg">C</span>
+          <div className="px-6 py-5 flex items-center justify-between border-b border-border">
+            <div className="flex items-center gap-3.5">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <span className="text-white font-extrabold text-lg">C</span>
+              </div>
+              <span className="font-extrabold text-xl tracking-tight text-gradient">CareerOS</span>
             </div>
-            <span className="font-extrabold text-xl tracking-tight text-gradient">CareerOS</span>
+            {/* Mobile close button */}
+            <button 
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-xl bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center border border-border/80"
+              aria-label="Close menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
           {/* Nav Links */}
@@ -125,13 +147,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all group cursor-pointer ${
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all group cursor-pointer min-h-[44px] ${
                     isActive 
                       ? 'bg-primary/10 text-primary border border-primary/20' 
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground border border-transparent'
                   }`}
                 >
-                  <Icon className={`h-4.5 w-4.5 transition-transform group-hover:scale-110 ${
+                  <Icon className={`h-5 w-5 transition-transform group-hover:scale-110 shrink-0 ${
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   }`} />
                   {item.name}
@@ -147,7 +170,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <img 
               src={user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&h=80&q=80"} 
               alt="Avatar" 
-              className="h-9 w-9 rounded-full object-cover border border-border"
+              className="h-10 w-10 rounded-full object-cover border border-border"
             />
             <div className="overflow-hidden">
               <p className="text-sm font-bold truncate leading-tight">{user.name}</p>
@@ -156,9 +179,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <button
             onClick={logout}
-            className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-zinc-950/40 hover:bg-destructive/10 text-muted-foreground hover:text-destructive text-xs font-bold transition-all border border-border cursor-pointer"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-zinc-950/40 hover:bg-destructive/10 text-muted-foreground hover:text-destructive text-xs font-bold transition-all border border-border cursor-pointer min-h-[44px]"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-4 w-4" />
             Logout Session
           </button>
         </div>
@@ -167,8 +190,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ========================================== */}
       {/* MOBILE HEADER & NAVIGATION BREAKPOINTS */}
       {/* ========================================== */}
-      <header className="lg:hidden flex items-center justify-between px-5 py-4 bg-card border-b border-border sticky top-0 z-40">
+      <header className="lg:hidden flex items-center justify-between px-5 py-3 bg-card border-b border-border sticky top-0 z-40 min-h-[64px]">
         <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2.5 -ml-2 rounded-xl text-muted-foreground hover:text-foreground transition-all cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center border border-transparent hover:bg-secondary/40"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5.5 w-5.5" />
+          </button>
           <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center">
             <span className="text-white font-extrabold text-base">C</span>
           </div>
@@ -176,25 +206,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Right side utility icons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-muted-foreground transition-all cursor-pointer"
+            className="p-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-muted-foreground transition-all cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center border border-border/45"
+            aria-label="Toggle theme"
           >
-            {theme === 'dark' ? <Sun className="h-4.5 w-4.5 text-amber-400" /> : <Moon className="h-4.5 w-4.5" />}
+            {theme === 'dark' ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5" />}
           </button>
 
           {/* Mobile Notifications badge */}
           <div className="relative">
             <button
               onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-              className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-muted-foreground transition-all cursor-pointer relative focus:outline-none focus:ring-2 focus:ring-indigo-500/25"
+              className="p-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-muted-foreground transition-all cursor-pointer relative min-w-[44px] min-h-[44px] flex items-center justify-center border border-border/45 focus:outline-none focus:ring-2 focus:ring-indigo-500/25"
+              aria-label="Toggle notifications"
             >
-              <Bell className="h-4.5 w-4.5" />
+              <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                <span className="absolute top-1 right-1 flex h-4.5 w-4.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-4 w-4 bg-indigo-600 text-[8px] text-white font-extrabold items-center justify-center border border-card">
+                  <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-indigo-600 text-[8px] text-white font-extrabold items-center justify-center border border-card">
                     {unreadCount}
                   </span>
                 </span>
@@ -207,32 +239,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ========================================== */}
       {/* MAIN VIEWPORT AND TOPBAR FOR DESKTOP */}
       {/* ========================================== */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
+      <div className="flex-1 flex flex-col min-w-0 pb-12 lg:pb-0">
         
         {/* Desktop Topbar Utilities (Visible lg+) */}
-        <header className="hidden lg:flex items-center justify-between px-8 py-5 border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-30">
+        <header className="hidden lg:flex items-center justify-between px-8 py-4 border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-30 min-h-[70px]">
           <h2 className="font-extrabold text-lg text-muted-foreground capitalize">
             {pathname.replace('/', '').replace('-', ' ') || 'Overview'}
           </h2>
 
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
             {/* Theme selector */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl bg-secondary hover:bg-secondary/85 border border-border/80 text-muted-foreground transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="p-3 rounded-xl bg-secondary hover:bg-secondary/85 border border-border/80 text-muted-foreground transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
+              {theme === 'dark' ? <Sun className="h-4.5 w-4.5 text-amber-400" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
 
             {/* Notifications panel dropdown trigger */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                className="p-2.5 rounded-xl bg-secondary hover:bg-secondary/85 border border-border/80 text-muted-foreground transition-all cursor-pointer relative focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="p-3 rounded-xl bg-secondary hover:bg-secondary/85 border border-border/80 text-muted-foreground transition-all cursor-pointer relative focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Toggle notifications"
               >
-                <Bell className="h-4 w-4" />
+                <Bell className="h-4.5 w-4.5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5">
+                  <span className="absolute top-1 right-1 flex h-4.5 w-4.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-indigo-600 text-[9px] text-white font-extrabold items-center justify-center border border-card">
                       {unreadCount}
@@ -249,7 +283,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {unreadCount > 0 && (
                       <button 
                         onClick={handleMarkAllAsRead}
-                        className="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer"
+                        className="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer min-h-[30px]"
                       >
                         Mark all read
                       </button>
@@ -277,9 +311,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {!notif.read && (
                               <button 
                                 onClick={() => handleMarkAsRead(notif._id)}
-                                className="h-4.5 w-4.5 rounded bg-secondary hover:bg-indigo-600/20 flex items-center justify-center text-indigo-400 cursor-pointer border border-transparent hover:border-indigo-500/15"
+                                className="h-6 w-6 rounded bg-secondary hover:bg-indigo-600/20 flex items-center justify-center text-indigo-400 cursor-pointer border border-transparent hover:border-indigo-500/15 min-h-[24px] min-w-[24px]"
                               >
-                                <Check className="h-2.5 w-2.5" />
+                                <Check className="h-3 w-3" />
                               </button>
                             )}
                           </div>
@@ -311,49 +345,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {showNotifDropdown && lgNotifFallback()}
 
         {/* Core Main content slots */}
-        <main className="flex-1 p-5 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-5 lg:p-8 overflow-y-auto min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-70px)]">
           {children}
         </main>
       </div>
-
-      {/* ========================================== */}
-      {/* MOBILE BOTTOM NAVIGATION BAR (Visible md/sm) */}
-      {/* ========================================== */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around items-center py-2.5 px-3.5 z-40 backdrop-blur-md">
-        {navigationItems.slice(0, 5).map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}
-            >
-              <Icon className="h-5.5 w-5.5" />
-              <span className="text-[9px] mt-1 font-bold tracking-tight">{item.name.replace(' & Roadmap', '').replace(' AI', '')}</span>
-            </Link>
-          );
-        })}
-        {/* Additional actions sheet toggle / settings */}
-        <Link
-          href="/settings"
-          className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all cursor-pointer ${
-            pathname === '/settings' ? 'text-primary' : 'text-muted-foreground'
-          }`}
-        >
-          <Settings className="h-5.5 w-5.5" />
-          <span className="text-[9px] mt-1 font-bold tracking-tight">Settings</span>
-        </Link>
-      </nav>
 
     </div>
   );
 
   function lgNotifFallback() {
     return (
-      <div className="lg:hidden fixed top-[69px] left-0 right-0 glass-panel border-b border-border z-40 p-4 max-h-72 overflow-y-auto divide-y divide-border animate-slide-up">
+      <div className="lg:hidden fixed top-[64px] left-0 right-0 glass-panel border-b border-border z-40 p-4 max-h-72 overflow-y-auto divide-y divide-border animate-slide-up">
         <div className="flex justify-between items-center pb-2 border-b border-border">
           <span className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Alerts Feed</span>
           <button 
@@ -361,7 +363,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               handleMarkAllAsRead();
               setShowNotifDropdown(false);
             }} 
-            className="text-[10px] text-indigo-400 font-bold"
+            className="text-[10px] text-indigo-400 font-bold min-h-[30px]"
           >
             Mark all read
           </button>
@@ -370,11 +372,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="py-6 text-center text-xs text-muted-foreground font-medium">No alerts today</div>
         ) : (
           notifications.map((notif) => (
-            <div key={notif._id || Math.random()} className="py-3 flex flex-col gap-0.5">
+            <div key={notif._id || Math.random()} className="py-3 flex flex-col gap-0.5 animate-fade-in">
               <div className="flex justify-between">
                 <span className="font-bold text-xs">{notif.title}</span>
                 {!notif.read && (
-                  <button onClick={() => handleMarkAsRead(notif._id)} className="h-4 w-4 flex items-center justify-center text-indigo-400">
+                  <button onClick={() => handleMarkAsRead(notif._id)} className="h-6 w-6 flex items-center justify-center text-indigo-400 min-h-[24px] min-w-[24px]">
                     <Check className="h-3 w-3" />
                   </button>
                 )}

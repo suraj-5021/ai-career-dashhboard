@@ -8,6 +8,7 @@ import * as skillsController from '../controllers/skillsController';
 import * as prepController from '../controllers/prepController';
 import * as notificationController from '../controllers/notificationController';
 import * as adminController from '../controllers/adminController';
+import * as chatController from '../controllers/chatController';
 
 const router = Router();
 
@@ -28,6 +29,9 @@ router.post('/auth/refresh', authController.refresh);
 // PROTECTED ROUTES (Requires Login)
 // ==========================================
 router.use(protect as any); // Apply protection to all routes below this line
+
+// Chat Assistant
+router.post('/chat', chatController.chat);
 
 // Auth profile updates
 router.get('/auth/me', authController.getMe);
