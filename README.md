@@ -1,5 +1,8 @@
 # 🚀 AI CareerOS
 
+live: https://ai-careeros-theta.vercel.app/dashboard
+
+
 <p align="center">
   <strong>An AI-Powered Career Development Platform for Students and Job Seekers.</strong>
 </p>
